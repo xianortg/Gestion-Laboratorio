@@ -1,11 +1,27 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EquipoController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/equipos', [EquipoController::class, 'index'])->name('equipos.index');
-Route::post('/equipos/guardar', [EquipoController::class, 'store'])->name('equipos.store');
+Route::get('/', function () {
+    return view('welcome');
+});
 
-Route::get('/equipos/{id}/editar', [EquipoController::class, 'edit'])->name('equipos.edit');
-Route::post('/equipos/{id}/actualizar', [EquipoController::class, 'update'])->name('equipos.update');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/equipos/{id}/eliminar', [EquipoController::class, 'destroy'])->name('equipos.destroy');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Recurso completo
+    Route::resource('equipos', EquipoController::class);
+
+    // 🚀 Ruta manual para el show
+    Route::get('equipos/{equipo}', [EquipoController::class, 'show'])->name('equipos.show');
+});
+
+require __DIR__.'/auth.php';

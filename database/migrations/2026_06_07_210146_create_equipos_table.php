@@ -16,7 +16,9 @@ return new class extends Migration
         $table->string('nombre', 80);
         $table->string('numero_serie')->unique();
         $table->text('descripcion')->nullable();
+        $table->string('imagen_ruta')->nullable();
         $table->timestamps();
+
     });
 }
     

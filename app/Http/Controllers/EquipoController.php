@@ -3,84 +3,79 @@
 namespace App\Http\Controllers;
 
 use App\Models\Equipo;
+use App\Models\Aula;
 use Illuminate\Http\Request;
 
 class EquipoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $equipos = \App\Models\Equipo::all();
-        return view('equipos.index', compact('equipos'));  
+        $equipos = Equipo::with('aula')->get();
+        $aulas = Aula::all();
+        return view('equipos.index', compact('equipos', 'aulas'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $aulas = Aula::all();
+        return view('equipos.create', compact('aulas'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-  public function store(\Illuminate\Http\Request $request)
-{
-    $equipo = new \App\Models\Equipo();
-
-    $equipo->nombre = $request->input('nombre');
-    $equipo->numero_serie = $request->input('numero_serie');
-    $equipo->descripcion = $request->input('descripcion');
-
-    $equipo->save();
-
-    return redirect()->route('equipos.index');
-}
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function store(Request $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        $equipo = Equipo::findOrFail($id);
-        return view('equipos.edit', compact('equipo'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        $equipo = Equipo::findOrFail($id);
-
+        $equipo = new Equipo();
         $equipo->nombre = $request->nombre;
         $equipo->numero_serie = $request->numero_serie;
         $equipo->descripcion = $request->descripcion;
+        $equipo->aula_id = $request->aula_id;
+
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('imagenes', 'public');
+            $equipo->imagen_ruta = 'storage/' . $path;
+        }
 
         $equipo->save();
 
-    return redirect()->route('equipos.index');
+        return redirect()->route('equipos.index')->with('success', 'Equipo creado correctamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    public function edit(string $id)
+    {
+        $equipo = Equipo::findOrFail($id);
+        $aulas = Aula::all();
+        return view('equipos.edit', compact('equipo', 'aulas'));
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $equipo = Equipo::findOrFail($id);
+        $equipo->nombre = $request->nombre;
+        $equipo->numero_serie = $request->numero_serie;
+        $equipo->descripcion = $request->descripcion;
+        $equipo->aula_id = $request->aula_id;
+
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('imagenes', 'public');
+            $equipo->imagen_ruta = 'storage/' . $path;
+        }
+
+        $equipo->save();
+
+        return redirect()->route('equipos.index')->with('success', 'Equipo actualizado correctamente');
+    }
+
     public function destroy(string $id)
     {
         $equipo = Equipo::findOrFail($id);
         $equipo->delete();
 
-        return redirect()->route('equipos.index');
+        return redirect()->route('equipos.index')->with('success', 'Equipo eliminado correctamente');
+    }
+
+    // 🚀 Método agregado para evitar el error
+    public function show(string $id)
+    {
+        // En vez de mostrar detalle, redirigimos directo a editar
+        return redirect()->route('equipos.edit', $id);
     }
 }
